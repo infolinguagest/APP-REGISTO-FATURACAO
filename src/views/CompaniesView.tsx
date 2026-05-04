@@ -292,23 +292,10 @@ export function CompaniesView() {
   );
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <div>
-          <h1 className="text-2xl font-bold text-slate-900">Base de Empresas</h1>
-        </div>
-        <button 
-          onClick={() => handleOpenModal(undefined, 'create')}
-          className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-        >
-          <Plus className="-ml-1 mr-2 h-5 w-5" />
-          Nova Empresa
-        </button>
-      </div>
-
+    <div className="max-w-full mx-auto pb-4">
       {/* Search and Filters */}
-      <div className="bg-white p-4 rounded-lg shadow-sm border border-slate-200 flex flex-col sm:flex-row gap-4">
-        <div className="relative flex-1">
+      <div className="bg-white p-3 rounded-lg shadow-sm border border-slate-200 flex flex-col sm:flex-row gap-4 justify-between items-center mb-4">
+        <div className="relative flex-1 w-full max-w-md">
           <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
             <Search className="h-5 w-5 text-slate-400" />
           </div>
@@ -320,6 +307,14 @@ export function CompaniesView() {
             className="block w-full pl-10 pr-3 py-2 border border-slate-300 rounded-md leading-5 bg-white placeholder-slate-500 focus:outline-none focus:placeholder-slate-400 focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
           />
         </div>
+        
+        <button 
+          onClick={() => handleOpenModal(undefined, 'create')}
+          className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 w-full sm:w-auto justify-center"
+        >
+          <Plus className="-ml-1 mr-2 h-5 w-5" />
+          Nova Empresa
+        </button>
       </div>
 
       {/* Table */}
@@ -340,16 +335,16 @@ export function CompaniesView() {
             <table className="min-w-full divide-y divide-slate-200">
               <thead className="bg-slate-50">
                 <tr>
-                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
+                  <th scope="col" className="px-6 py-2 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
                     Nome da Empresa
                   </th>
-                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
+                  <th scope="col" className="px-6 py-2 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
                     NIF
                   </th>
-                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
+                  <th scope="col" className="px-6 py-2 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
                     Contacto RH (Principal)
                   </th>
-                  <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-slate-500 uppercase tracking-wider">
+                  <th scope="col" className="px-6 py-2 text-right text-xs font-medium text-slate-500 uppercase tracking-wider">
                     Ações
                   </th>
                 </tr>
@@ -360,13 +355,13 @@ export function CompaniesView() {
                   
                   return (
                     <tr key={empresa.id} className="hover:bg-slate-50 transition-colors">
-                      <td className="px-6 py-4 whitespace-nowrap">
+                      <td className="px-6 py-2 whitespace-nowrap">
                         <div className="text-sm font-medium text-slate-900">{empresa.nome}</div>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
+                      <td className="px-6 py-2 whitespace-nowrap">
                         <div className="text-sm text-slate-500">{empresa.nifFaturacao || '-'}</div>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
+                      <td className="px-6 py-2 whitespace-nowrap">
                         {empresa.drhs && empresa.drhs.length > 0 ? (
                           <div className="flex flex-col">
                             <div className="flex items-center">
@@ -383,7 +378,7 @@ export function CompaniesView() {
                           <span className="text-sm text-gray-400 italic">Sem contactos</span>
                         )}
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                      <td className="px-6 py-2 whitespace-nowrap text-right text-sm font-medium">
                         <div className="flex justify-end space-x-2">
                           <button 
                             onClick={() => handleOpenModal(empresa, 'view')}

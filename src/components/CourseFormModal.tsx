@@ -38,6 +38,7 @@ const INITIAL_FORM_DATA = {
   startDate: '',
   expectedEndDate: '',
   structure: '',
+  descricaoFormacao: '',
   schedule: '',
   isFlexibleSchedule: false,
   formadorId: '',
@@ -141,6 +142,7 @@ export function CourseFormModal({ isOpen, onClose, onSubmit, courses, initialDat
           startDate: formatDateForInput(initialData.startDate),
           expectedEndDate: formatDateForInput(initialData.expectedEndDate),
           structure: initialData.structure || '',
+          descricaoFormacao: initialData.descricaoFormacao || '',
           schedule: initialData.schedule || '',
           isFlexibleSchedule: initialData.isFlexibleSchedule || false,
           formadorId: initialData.formadorId || initialData.trainerId || '',
@@ -248,6 +250,7 @@ export function CourseFormModal({ isOpen, onClose, onSubmit, courses, initialDat
       drhNome: formData.drhNome,
       drhEmail: formData.drhEmail,
       structure: formData.structure,
+      descricaoFormacao: formData.descricaoFormacao,
       schedule: formData.schedule,
       isFlexibleSchedule: formData.isFlexibleSchedule,
       trainerId: formData.formadorId,
@@ -513,6 +516,10 @@ export function CourseFormModal({ isOpen, onClose, onSubmit, courses, initialDat
               <div className="col-span-1">
                 <label className="block text-sm font-medium text-slate-700 mb-1">Conclusão Prevista *</label>
                 <input type="date" required name="expectedEndDate" value={formData.expectedEndDate} onChange={handleChange} className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500" />
+              </div>
+              <div className="col-span-1 lg:col-span-3">
+                <label className="block text-sm font-medium text-slate-700 mb-1">Descrição da Formação</label>
+                <textarea rows={2} name="descricaoFormacao" value={formData.descricaoFormacao} onChange={handleChange} placeholder="Breve descrição dos objetivos ou conteúdo do curso..." className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500" />
               </div>
               <div className="col-span-1 lg:col-span-2">
                 <label className="block text-sm font-medium text-slate-700 mb-1">Estrutura do Curso *</label>

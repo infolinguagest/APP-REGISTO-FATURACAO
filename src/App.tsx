@@ -11,7 +11,9 @@ import { StudentsView } from './views/StudentsView';
 import { TrainersView } from './views/TrainersView';
 import { CompaniesView } from './views/CompaniesView';
 import { BillingDashboardView } from './views/BillingDashboardView';
+import { TrainerBillingView } from './views/TrainerBillingView';
 import { SettingsView } from './views/SettingsView';
+import { NotificationsView } from './views/NotificationsView';
 import { checkAndUpdateCourseStatuses, getCourseById, getCourseByRef, updateCourseDetails, getActiveCourses } from './services/dbService';
 import { CourseDetailsModal } from './components/CourseDetailsModal';
 import { CourseFormModal } from './components/CourseFormModal';
@@ -100,8 +102,19 @@ export default function App() {
             refreshTrigger={refreshTrigger} 
             onOpenCourse={handleOpenCourse} 
           />
+        ) : activeTab === 'honorarios' ? (
+          <TrainerBillingView
+            refreshTrigger={refreshTrigger}
+          />
         ) : activeTab === 'configuracoes' ? (
           <SettingsView />
+        ) : activeTab === 'notificacoes' ? (
+          <NotificationsView 
+            refreshTrigger={refreshTrigger}
+            onOpenCourse={handleOpenCourse}
+            currentUserRole={currentUserRole}
+            onUpdate={handleDetailsUpdate}
+          />
         ) : (
           <CoursesListView 
             activeTab={activeTab} 

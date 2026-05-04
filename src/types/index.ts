@@ -39,6 +39,16 @@ export interface Formador {
   telefone?: string;
   nif?: string;
   iban?: string;
+  taxaIvaPadrao?: number;
+  linguas?: string[];
+  estado?: 'Candidato' | 'Entrevista OK' | 'Ativo' | 'Inativo';
+  dataEnvioCv?: string;
+  dataPrimeiraEntrevista?: string;
+  observacoes?: string;
+  disponibilidadeHorario?: string;
+  modalidadeAula?: 'Online' | 'Presencial' | 'Ambos';
+  custoHoraBase?: number;
+  inicioColaboracao?: string;
 }
 
 export interface HRContact {
@@ -103,6 +113,19 @@ export interface PaymentInstallment {
   observacoes?: string;
 }
 
+export interface HonorarioFormador {
+  id: string;
+  mesReferencia: string;
+  tipo: 'Horas' | 'Tutoria' | 'Outro';
+  quantidade: number;
+  valorUnitario: number;
+  valorTotal: number;
+  estado: 'Por Faturar' | 'Faturado' | 'Pago';
+  numeroRecibo?: string;
+  dataRecibo?: string;
+  taxaIvaAplicada?: number;
+}
+
 export interface Course {
   id: string;
   reference: string;
@@ -155,4 +178,5 @@ export interface Course {
   numeroProposta?: string;
   dataEmissaoCertificados?: string;
   dataEnvioRH?: string;
+  honorariosFormador?: HonorarioFormador[];
 }

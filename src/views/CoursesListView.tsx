@@ -156,26 +156,13 @@ export function CoursesListView({ activeTab, refreshTrigger, onOpenCourse }: Cou
   const uniqueEmpresas = Array.from(new Set(courses.filter(c => c.state !== 'CONCLUIDO' && c.state !== 'ANULADO' && c.audience === 'B').map(c => c.empresa))).filter(e => e && e !== 'Linguagest');
   const uniqueFormadores = Array.from(new Set(courses.filter(c => c.state !== 'CONCLUIDO' && c.state !== 'ANULADO').map(c => c.trainerName))).filter(Boolean);
 
-  const thClass = "px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider whitespace-nowrap";
-  const tdClass = "px-4 py-4 whitespace-nowrap text-sm text-slate-700";
+  const thClass = "px-4 py-2 text-left text-xs font-medium text-slate-500 uppercase tracking-wider whitespace-nowrap";
+  const tdClass = "px-4 py-2 whitespace-nowrap text-sm text-slate-700";
 
   return (
-    <div className="max-w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold text-slate-900">
-          Lista de Cursos
-        </h1>
-        <button
-          onClick={() => setIsCreateModalOpen(true)}
-          className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-        >
-          <Plus className="h-4 w-4 mr-2" />
-          Novo Curso
-        </button>
-      </div>
-
+    <div className="max-w-full mx-auto pb-4">
       {/* Toolbar */}
-      <div className="bg-white p-4 rounded-lg shadow-sm border border-slate-200 mb-6 flex flex-wrap gap-4 items-center justify-between">
+      <div className="bg-white p-3 rounded-lg shadow-sm border border-slate-200 mb-4 flex flex-wrap gap-4 items-center justify-between">
         <div className="flex flex-wrap gap-4 items-center">
           <div className="relative">
             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -236,13 +223,21 @@ export function CoursesListView({ activeTab, refreshTrigger, onOpenCourse }: Cou
           </select>
         </div>
 
-        <div className="relative" ref={columnMenuRef}>
+        <div className="relative flex items-center gap-3" ref={columnMenuRef}>
           <button
             onClick={() => setIsColumnMenuOpen(!isColumnMenuOpen)}
             className="inline-flex items-center px-3 py-1.5 border border-slate-300 text-sm font-medium rounded-md text-slate-700 bg-white hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
           >
             <Settings2 className="h-4 w-4 mr-2" />
             Gerir Colunas
+          </button>
+          
+          <button
+            onClick={() => setIsCreateModalOpen(true)}
+            className="inline-flex items-center px-3 py-1.5 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+          >
+            <Plus className="h-4 w-4 mr-2" />
+            Novo Curso
           </button>
           
           {isColumnMenuOpen && (
@@ -306,19 +301,19 @@ export function CoursesListView({ activeTab, refreshTrigger, onOpenCourse }: Cou
                     className="hover:bg-slate-50 transition-colors cursor-pointer"
                     onClick={() => onOpenCourse(course.id)}
                   >
-                    <td className="px-4 py-4 whitespace-nowrap text-sm font-bold text-slate-900 font-mono w-32">
+                    <td className="px-4 py-2 whitespace-nowrap text-sm font-bold text-slate-900 font-mono w-32">
                       {course.reference}
                     </td>
-                    <td className="px-4 py-4 whitespace-nowrap w-24">
+                    <td className="px-4 py-2 whitespace-nowrap w-24">
                       <Badge state={course.state} />
                     </td>
-                    <td className="px-4 py-4 whitespace-nowrap text-sm text-slate-500 w-28 text-center">
+                    <td className="px-4 py-2 whitespace-nowrap text-sm text-slate-500 w-28 text-center">
                       {formatShortDate(course.startDate)}
                     </td>
-                    <td className="px-4 py-4 whitespace-nowrap text-sm text-slate-500 w-28 text-center">
+                    <td className="px-4 py-2 whitespace-nowrap text-sm text-slate-500 w-28 text-center">
                       {formatShortDate(course.expectedEndDate)}
                     </td>
-                    <td className="px-4 py-4 whitespace-nowrap text-sm font-medium text-slate-900 max-w-[150px] truncate" title={course.audience === 'C' ? 'Linguagest' : (course.empresa || 'Linguagest')}>
+                    <td className="px-4 py-2 whitespace-nowrap text-sm font-medium text-slate-900 max-w-[150px] truncate" title={course.audience === 'C' ? 'Linguagest' : (course.empresa || 'Linguagest')}>
                       {course.audience === 'C' ? 'Linguagest' : (course.empresa || 'Linguagest')}
                     </td>
 
@@ -328,7 +323,7 @@ export function CoursesListView({ activeTab, refreshTrigger, onOpenCourse }: Cou
                         case 'progresso':
                           const progress = calculateProgress(course.startDate, course.expectedEndDate);
                           return (
-                            <td key={col.id} className="px-4 py-4 whitespace-nowrap w-20 text-center">
+                            <td key={col.id} className="px-4 py-2 whitespace-nowrap w-20 text-center">
                               <div className="w-full bg-slate-200 rounded-full h-2.5 min-w-[80px]">
                                 <div 
                                   className="bg-indigo-600 h-2.5 rounded-full" 

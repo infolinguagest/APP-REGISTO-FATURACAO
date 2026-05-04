@@ -145,7 +145,9 @@ export function BillingDashboardView({ refreshTrigger, onOpenCourse }: BillingDa
     const atrasos = filteredParcelas.filter(p => {
       if (!p.dataPrevista) return false;
       const dataPrevista = new Date(p.dataPrevista);
-      return dataPrevista < today && p.estado !== 'Paga';
+      const limitDate = new Date(today);
+      limitDate.setDate(limitDate.getDate() + 3);
+      return dataPrevista <= limitDate && p.estado !== 'Paga';
     }).sort((a, b) => new Date(a.dataPrevista).getTime() - new Date(b.dataPrevista).getTime());
 
     const aFaturarEsteMes = filteredParcelas.filter(p => {
@@ -168,13 +170,9 @@ export function BillingDashboardView({ refreshTrigger, onOpenCourse }: BillingDa
   }
 
   return (
-    <div className="max-w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold text-slate-900">Dashboard de Faturação</h1>
-      </div>
-
+    <div className="max-w-full mx-auto pb-4">
       {/* Filters */}
-      <div className="bg-white p-4 rounded-lg shadow-sm border border-slate-200 mb-6 flex flex-wrap gap-4 items-center">
+      <div className="bg-white p-3 rounded-lg shadow-sm border border-slate-200 mb-4 flex flex-wrap gap-4 items-center">
         <select
           value={filterYear}
           onChange={(e) => setFilterYear(Number(e.target.value))}
@@ -275,12 +273,15 @@ export function BillingDashboardView({ refreshTrigger, onOpenCourse }: BillingDa
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Alertas de Faturação (Atrasos) */}
         <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden flex flex-col">
-          <div className="px-6 py-4 border-b border-slate-200 bg-red-50/30 flex items-center justify-between">
-            <h3 className="text-base font-semibold text-slate-900 flex items-center">
-              <AlertCircle className="h-5 w-5 mr-2 text-red-500" />
-              Alertas de Faturação (Atrasos)
-            </h3>
-            <span className="bg-red-100 text-red-800 text-xs font-medium px-2.5 py-0.5 rounded-full">
+          <div className="px-6 py-4 border-b border-slate-200 bg-red-50/30 flex items-start justify-between">
+            <div>
+              <h3 className="text-base font-semibold text-slate-900 flex items-center">
+                <AlertCircle className="h-5 w-5 mr-2 text-red-500" />
+                Alertas de Faturação (Atrasos)
+              </h3>
+              <p className="text-xs text-slate-500 mt-1 ml-7">Inclui faturas com vencimento nos próximos 3 dias</p>
+            </div>
+            <span className="bg-red-100 text-red-800 text-xs font-medium px-2.5 py-0.5 rounded-full mt-1">
               {actionLists.atrasos.length}
             </span>
           </div>
@@ -293,29 +294,31 @@ export function BillingDashboardView({ refreshTrigger, onOpenCourse }: BillingDa
               <table className="min-w-full divide-y divide-slate-200">
                 <thead className="bg-slate-50 sticky top-0">
                   <tr>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Data Prevista</th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Curso</th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Empresa</th>
-                    <th className="px-4 py-3 text-right text-xs font-medium text-slate-500 uppercase tracking-wider">Valor</th>
-                    <th className="px-4 py-3"></th>
+                    <th className="px-4 py-2 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Data Prevista</th>
+                    <th className="px-4 py-2 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Curso</th>
+                    <th className="px-4 py-2 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Empresa</th>
+                    <th className="px-4 py-2 text-right text-xs font-medium text-slate-500 uppercase tracking-wider">Valor</th>
+                    <th className="px-4 py-2"></th>
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-slate-200">
-                  {actionLists.atrasos.map((p, idx) => (
+                  {actionLists.atrasos.map((p, idx) => {
+                    const isUpcoming = new Date(p.dataPrevista) >= new Date(new Date().setHours(0,0,0,0));
+                    return (
                     <tr key={idx} className="hover:bg-slate-50">
-                      <td className="px-4 py-3 whitespace-nowrap text-sm text-red-600 font-medium">
+                      <td className={`px-4 py-2 whitespace-nowrap text-sm font-medium ${isUpcoming ? 'text-amber-500' : 'text-red-600'}`}>
                         {formatShortDate(p.dataPrevista)}
                       </td>
-                      <td className="px-4 py-3 whitespace-nowrap text-sm text-slate-900 font-mono">
+                      <td className="px-4 py-2 whitespace-nowrap text-sm text-slate-900 font-mono">
                         {p.courseRef}
                       </td>
-                      <td className="px-4 py-3 whitespace-nowrap text-sm text-slate-500">
+                      <td className="px-4 py-2 whitespace-nowrap text-sm text-slate-500">
                         {p.companyName}
                       </td>
-                      <td className="px-4 py-3 whitespace-nowrap text-sm text-slate-900 text-right font-medium">
+                      <td className="px-4 py-2 whitespace-nowrap text-sm text-slate-900 text-right font-medium">
                         {formatNumber(p.valor)} €
                       </td>
-                      <td className="px-4 py-3 whitespace-nowrap text-right text-sm font-medium">
+                      <td className="px-4 py-2 whitespace-nowrap text-right text-sm font-medium">
                         <button
                           onClick={() => onOpenCourse(p.courseId)}
                           className="text-indigo-600 hover:text-indigo-900"
@@ -324,7 +327,8 @@ export function BillingDashboardView({ refreshTrigger, onOpenCourse }: BillingDa
                         </button>
                       </td>
                     </tr>
-                  ))}
+                    );
+                  })}
                 </tbody>
               </table>
             )}
@@ -351,29 +355,29 @@ export function BillingDashboardView({ refreshTrigger, onOpenCourse }: BillingDa
               <table className="min-w-full divide-y divide-slate-200">
                 <thead className="bg-slate-50 sticky top-0">
                   <tr>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Data Prevista</th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Curso</th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Empresa</th>
-                    <th className="px-4 py-3 text-right text-xs font-medium text-slate-500 uppercase tracking-wider">Valor</th>
-                    <th className="px-4 py-3"></th>
+                    <th className="px-4 py-2 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Data Prevista</th>
+                    <th className="px-4 py-2 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Curso</th>
+                    <th className="px-4 py-2 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Empresa</th>
+                    <th className="px-4 py-2 text-right text-xs font-medium text-slate-500 uppercase tracking-wider">Valor</th>
+                    <th className="px-4 py-2"></th>
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-slate-200">
                   {actionLists.aFaturarEsteMes.map((p, idx) => (
                     <tr key={idx} className="hover:bg-slate-50">
-                      <td className="px-4 py-3 whitespace-nowrap text-sm text-slate-900">
+                      <td className="px-4 py-2 whitespace-nowrap text-sm text-slate-900">
                         {formatShortDate(p.dataPrevista)}
                       </td>
-                      <td className="px-4 py-3 whitespace-nowrap text-sm text-slate-900 font-mono">
+                      <td className="px-4 py-2 whitespace-nowrap text-sm text-slate-900 font-mono">
                         {p.courseRef}
                       </td>
-                      <td className="px-4 py-3 whitespace-nowrap text-sm text-slate-500">
+                      <td className="px-4 py-2 whitespace-nowrap text-sm text-slate-500">
                         {p.companyName}
                       </td>
-                      <td className="px-4 py-3 whitespace-nowrap text-sm text-slate-900 text-right font-medium">
+                      <td className="px-4 py-2 whitespace-nowrap text-sm text-slate-900 text-right font-medium">
                         {formatNumber(p.valor)} €
                       </td>
-                      <td className="px-4 py-3 whitespace-nowrap text-right text-sm font-medium">
+                      <td className="px-4 py-2 whitespace-nowrap text-right text-sm font-medium">
                         <button
                           onClick={() => onOpenCourse(p.courseId)}
                           className="text-indigo-600 hover:text-indigo-900"

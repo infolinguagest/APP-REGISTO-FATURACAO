@@ -1,4 +1,4 @@
-import { Course, Company, Trainer, CourseState, Notification, Student, Role, Formador, Empresa, CourseLog, Lingua } from '../types';
+import { Course, Company, Trainer, CourseState, Notification, Student, Role, Formador, Empresa, CourseLog, Lingua, HonorarioFormador } from '../types';
 
 export const STATUS_ROUTING_MAP: Record<string, Role[]> = {
   'DTP CONCLUIDO': ['ADMINISTRATIVO'],
@@ -61,9 +61,11 @@ export const mockTrainers: Trainer[] = [
 ];
 
 export const mockFormadores: Formador[] = [
-  { id: 'f1', nome: 'Hans Müller', email: 'hans@example.com', telefone: '912345678', nif: '123456789' },
-  { id: 'f2', nome: 'John Doe', email: 'john@example.com', telefone: '923456789', nif: '234567891' },
-  { id: 'f3', nome: 'Marie Curie', email: 'marie@example.com', telefone: '934567891', nif: '345678912' }
+  { id: 'f1', nome: 'Hans Müller', email: 'hans@example.com', telefone: '912345678', nif: '123456789', estado: 'Ativo', linguas: ['ALE'], modalidadeAula: 'Ambos', custoHoraBase: 25, inicioColaboracao: '2023-01-10', taxaIvaPadrao: 0 },
+  { id: 'f2', nome: 'John Doe', email: 'john@example.com', telefone: '923456789', nif: '234567891', estado: 'Ativo', linguas: ['ING'], modalidadeAula: 'Online', custoHoraBase: 20, dataEnvioCv: '2024-05-20', inicioColaboracao: '2024-06-01', taxaIvaPadrao: 23 },
+  { id: 'f3', nome: 'Marie Curie', email: 'marie@example.com', telefone: '934567891', nif: '345678912', estado: 'Inativo', linguas: ['FRA', 'ING'], modalidadeAula: 'Presencial', custoHoraBase: 28 },
+  { id: 'f4', nome: 'Isabella Rossi', email: 'isabella@example.com', telefone: '945678912', nif: '456789123', estado: 'Candidato', linguas: ['ITA', 'ESP'], dataEnvioCv: '2026-04-20', observacoes: 'CV muito forte, aguarda entrevista' },
+  { id: 'f5', nome: 'Pedro Marques', email: 'pedro@example.com', telefone: '956789123', estado: 'Entrevista OK', linguas: ['POR', 'ING'], dataEnvioCv: '2026-04-10', dataPrimeiraEntrevista: '2026-04-15', disponibilidadeHorario: 'Pós-laboral' }
 ];
 
 export const mockEmpresas: Empresa[] = [
@@ -134,6 +136,17 @@ const mockCourses: Course[] = [
     modalidade: 'Corp. Online',
     dataConclusaoEfetiva: '',
     enrolledStudents: ['s1', 's2'],
+    honorariosFormador: [
+      {
+        id: 'h1',
+        mesReferencia: '2026-03',
+        tipo: 'Horas',
+        quantidade: 10,
+        valorUnitario: 25,
+        valorTotal: 250,
+        estado: 'Por Faturar'
+      }
+    ],
     logs: [
       {
         id: 'l1',
@@ -188,6 +201,18 @@ const mockCourses: Course[] = [
     modalidade: 'Presencial 1 Nível',
     dataConclusaoEfetiva: '',
     enrolledStudents: ['s3'],
+    honorariosFormador: [
+      {
+        id: 'h2',
+        mesReferencia: '2026-02',
+        tipo: 'Horas',
+        quantidade: 5,
+        valorUnitario: 20,
+        valorTotal: 100,
+        estado: 'Pago',
+        numeroRecibo: 'REC-2026-001'
+      }
+    ],
     logs: [
       {
         id: 'l2',
@@ -684,7 +709,7 @@ export const enrollStudent = async (courseId: string, studentId: string, user: s
         
         const newLog = {
           id: `l${Date.now()}`,
-          user: 'Sistema',
+          user: user,
           timestamp: new Date().toISOString(),
           message: `[SISTEMA] Aluno ${student.nome} inscrito no curso.`
         };
@@ -717,7 +742,7 @@ export const unenrollStudent = async (courseId: string, studentId: string, user:
         
         const newLog = {
           id: `l${Date.now()}`,
-          user: 'Sistema',
+          user: user,
           timestamp: new Date().toISOString(),
           message: `[SISTEMA] Inscrição do aluno ${student.nome} cancelada.`
         };
@@ -817,7 +842,7 @@ export const updateCourseStatus = async (courseId: string, newState: CourseState
       
       const newLog = {
         id: `l${Date.now()}`,
-        user: 'Sistema',
+        user: user,
         timestamp: new Date().toISOString(),
         message: `Estado alterado para ${newState}`
       };
@@ -1007,4 +1032,84 @@ export const restoreDatabaseBackup = (jsonData: string) => {
     console.error("Error restoring backup:", error);
     return false;
   }
+};
+
+export const searchAlunos = async (filters: { searchTerm?: string, empresa?: string, nivel?: string }, limitCount = 50): Promise<Student[]> => {
+  return new Promise((resolve) => {
+    setTimeout(() => {
+      let results = [...mockStudents];
+      if (filters.searchTerm) {
+        const lowerTerm = filters.searchTerm.toLowerCase();
+        results = results.filter(s => 
+          s.nome.toLowerCase().includes(lowerTerm) ||
+          s.numeroAluno?.toLowerCase().includes(lowerTerm) ||
+          s.email?.toLowerCase().includes(lowerTerm)
+        );
+      }
+      if (filters.empresa) {
+        results = results.filter(s => s.empresaId === filters.empresa);
+      }
+      if (filters.nivel) {
+        results = results.filter(s => s.niveis?.includes(filters.nivel as any));
+      }
+      resolve(results.slice(0, limitCount));
+    }, 400);
+  });
+};
+
+export const searchArchivedCourses = async (filters: any, limitCount = 50): Promise<Course[]> => {
+  return new Promise((resolve) => {
+    setTimeout(() => {
+      let results = [...mockCourses].filter(c => c.state === 'FEITO' || c.state === 'ANULADO' || c.state === 'CONCLUIDO');
+      
+      if (filters.searchTerm) {
+        const lowerTerm = filters.searchTerm.toLowerCase();
+        results = results.filter(c => 
+          c.reference.toLowerCase().includes(lowerTerm) ||
+          c.empresa?.toLowerCase().includes(lowerTerm) ||
+          c.trainerName?.toLowerCase().includes(lowerTerm)
+        );
+      }
+      if (filters.year) {
+        results = results.filter(c => c.startDate.startsWith(filters.year));
+      }
+      if (filters.state) {
+        results = results.filter(c => c.state === filters.state);
+      }
+      if (filters.language) {
+        results = results.filter(c => c.language === filters.language);
+      }
+      if (filters.level) {
+        results = results.filter(c => c.nivel.includes(filters.level));
+      }
+      
+      resolve(results.slice(0, limitCount));
+    }, 400);
+  });
+};
+
+export const updateCourseHonorarios = async (courseId: string, honorarios: HonorarioFormador[]): Promise<Course> => {
+  return new Promise((resolve, reject) => {
+    setTimeout(() => {
+      const index = mockCourses.findIndex(c => c.id === courseId);
+      if (index === -1) {
+        return reject(new Error('Course not found'));
+      }
+      
+      mockCourses[index] = {
+        ...mockCourses[index],
+        honorariosFormador: honorarios
+      };
+      
+      const newLog = {
+        id: `l${Date.now()}`,
+        user: 'Sistema',
+        timestamp: new Date().toISOString(),
+        message: `[SISTEMA] Honorários do formador atualizados.`
+      };
+      mockCourses[index].logs = [...(mockCourses[index].logs || []), newLog];
+
+      resolve({ ...mockCourses[index] });
+    }, 400);
+  });
 };

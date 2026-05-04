@@ -32,6 +32,8 @@ const COURSE_STATES: CourseState[] = [
 
 export function CourseDetailsModal({ isOpen, onClose, course, onUpdate, onOpenCourseByRef, onEditCourse }: CourseDetailsModalProps) {
   const { showToast } = useToast();
+  // Temp variable until Auth is implemented
+  const currentUser = 'Catarina Gomes';
   const [currentCourse, setCurrentCourse] = useState<Course | null>(null);
   const [newMessage, setNewMessage] = useState('');
   const [isUpdatingStatus, setIsUpdatingStatus] = useState(false);
@@ -72,8 +74,7 @@ export function CourseDetailsModal({ isOpen, onClose, course, onUpdate, onOpenCo
     const newState = e.target.value as CourseState;
     setIsUpdatingStatus(true);
     try {
-      // Hardcoded user for now, would come from Auth context
-      const updatedCourse = await updateCourseStatus(currentCourse.id, newState, 'Catarina Gomes');
+      const updatedCourse = await updateCourseStatus(currentCourse.id, newState, currentUser);
       setCurrentCourse(updatedCourse);
       onUpdate(); // Refresh parent list
       showToast('Estado atualizado com sucesso!', 'success');
@@ -91,8 +92,7 @@ export function CourseDetailsModal({ isOpen, onClose, course, onUpdate, onOpenCo
     
     setIsSendingMessage(true);
     try {
-      // Hardcoded user for now, would come from Auth context
-      const updatedCourse = await addCourseLog(currentCourse.id, newMessage.trim(), 'Catarina Gomes');
+      const updatedCourse = await addCourseLog(currentCourse.id, newMessage.trim(), currentUser);
       
       if (selectedTargetRole !== 'NINGUEM') {
         await createManualNotification(

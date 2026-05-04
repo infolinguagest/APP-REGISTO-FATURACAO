@@ -1,11 +1,11 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { BookOpen, FileText, LayoutDashboard, Settings, Users, GraduationCap, Archive, Bell, Check, Building, DownloadCloud, UploadCloud } from 'lucide-react';
+import { BookOpen, FileText, LayoutDashboard, Settings, Users, GraduationCap, Archive, Bell, Check, Building, DownloadCloud, UploadCloud, Banknote, ChevronDown, LogOut } from 'lucide-react';
 import { Notification, Role } from '../types';
 import { getNotifications, markNotificationAsRead, exportDatabaseBackup, restoreDatabaseBackup } from '../services/dbService';
 
 import { ErrorBoundary } from './ErrorBoundary';
 
-export type TabType = 'lista_cursos' | 'faturacao' | 'arquivo' | 'alunos_base' | 'formadores_base' | 'empresas_base' | 'configuracoes';
+export type TabType = 'lista_cursos' | 'faturacao' | 'honorarios' | 'arquivo' | 'alunos_base' | 'formadores_base' | 'empresas_base' | 'configuracoes' | 'notificacoes';
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -18,10 +18,10 @@ interface LayoutProps {
 
 export function Layout({ children, activeTab, onTabChange, onOpenCourse, currentUserRole, setCurrentUserRole }: LayoutProps) {
   const [notifications, setNotifications] = useState<Notification[]>([]);
-  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-  const dropdownRef = useRef<HTMLDivElement>(null);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const settingsRef = useRef<HTMLDivElement>(null);
+  const [isProfileOpen, setIsProfileOpen] = useState(false);
+  const profileRef = useRef<HTMLDivElement>(null);
 
   const fetchNotifications = async () => {
     const data = await getNotifications();
@@ -36,33 +36,16 @@ export function Layout({ children, activeTab, onTabChange, onOpenCourse, current
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
-        setIsDropdownOpen(false);
-      }
       if (settingsRef.current && !settingsRef.current.contains(event.target as Node)) {
         setIsSettingsOpen(false);
+      }
+      if (profileRef.current && !profileRef.current.contains(event.target as Node)) {
+        setIsProfileOpen(false);
       }
     };
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
-
-  const handleNotificationClick = async (notif: Notification) => {
-    if (!notif.read) {
-      await markNotificationAsRead(notif.id);
-      fetchNotifications();
-    }
-    setIsDropdownOpen(false);
-    onOpenCourse(notif.courseId);
-  };
-
-  const handleMarkAsRead = async (e: React.MouseEvent, notifId: string) => {
-    e.stopPropagation();
-    await markNotificationAsRead(notifId);
-    // Optimistic update
-    setNotifications(prev => prev.map(n => n.id === notifId ? { ...n, read: true } : n));
-    fetchNotifications();
-  };
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isRestoreModalOpen, setIsRestoreModalOpen] = useState(false);
@@ -136,46 +119,102 @@ export function Layout({ children, activeTab, onTabChange, onOpenCourse, current
     return `há ${diffInDays} dias`;
   };
 
-  const navItems = [
-    { id: 'lista_cursos', label: 'Lista de Cursos', icon: LayoutDashboard },
-    { id: 'faturacao', label: 'Faturação', icon: FileText },
+  const navGroups = [
+    { id: 'lista_cursos', label: 'Cursos', icon: LayoutDashboard },
+    {
+      label: 'Financeiro',
+      items: [
+        { id: 'faturacao', label: 'Faturação', icon: FileText },
+        { id: 'honorarios', label: 'Honorários', icon: Banknote },
+      ]
+    },
+    {
+      label: 'Bases de Dados',
+      items: [
+        { id: 'alunos_base', label: 'Alunos', icon: BookOpen },
+        { id: 'formadores_base', label: 'Formadores', icon: Users },
+        { id: 'empresas_base', label: 'Empresas', icon: Building },
+      ]
+    },
     { id: 'arquivo', label: 'Arquivo', icon: Archive },
-    { id: 'alunos_base', label: 'Base de Alunos', icon: BookOpen },
-    { id: 'formadores_base', label: 'Base de Formadores', icon: Users },
-    { id: 'empresas_base', label: 'Base de Empresas', icon: Building },
-  ] as const;
+    { id: 'notificacoes', label: 'Notificações', icon: Bell },
+  ];
 
   return (
     <div className="min-h-screen bg-slate-50 font-sans flex flex-col">
       {/* Top Navbar */}
       <header className="bg-white border-b border-slate-200 shadow-sm sticky top-0 z-10">
         <div className="max-w-full mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between h-16">
+          <div className="flex justify-between h-14">
             {/* Left side: Logo and Navigation */}
             <div className="flex">
               {/* Logo */}
               <div className="flex-shrink-0 flex items-center mr-8">
-                <BookOpen className="h-6 w-6 text-indigo-600 mr-2" />
                 <span className="text-xl font-bold text-slate-900">Linguagest</span>
               </div>
 
               {/* Desktop Navigation */}
               <nav className="hidden sm:ml-6 sm:flex sm:space-x-8">
-                {navItems.map((item) => {
-                  const Icon = item.icon;
-                  const isActive = activeTab === item.id;
+                {navGroups.map((group, idx) => {
+                  if (group.items) {
+                    const hasActiveItem = group.items.some(i => i.id === activeTab);
+                    return (
+                      <div key={idx} className="relative flex group">
+                        <button
+                          className={`inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium transition-colors ${
+                            hasActiveItem
+                              ? 'border-indigo-500 text-slate-900'
+                              : 'border-transparent text-slate-500 hover:border-slate-300 hover:text-slate-700'
+                          }`}
+                        >
+                          {group.label}
+                          <ChevronDown className="h-4 w-4 ml-1 text-slate-400 group-hover:text-slate-600 transition-colors" />
+                        </button>
+                        
+                        <div className="absolute top-full left-0 w-48 bg-white border border-slate-200 shadow-lg rounded-b-md rounded-tr-md py-1 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-150 z-50">
+                          {/* Invisible bridge to prevent hover loss */}
+                          <div className="absolute -top-2 left-0 right-0 h-2 bg-transparent" />
+                          
+                          {group.items.map((item) => {
+                            const IconItem = item.icon;
+                            let isActive = activeTab === item.id;
+                            return (
+                              <button
+                                key={item.id}
+                                onClick={() => onTabChange(item.id as TabType)}
+                                className={`w-full text-left px-4 py-2 text-sm flex items-center transition-colors ${
+                                  isActive ? 'bg-indigo-50 text-indigo-700 font-medium' : 'text-slate-700 hover:bg-slate-50'
+                                }`}
+                              >
+                                {IconItem && <IconItem className="h-4 w-4 mr-2" />}
+                                {item.label}
+                              </button>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    );
+                  }
+
+                  const Icon = group.icon;
+                  const isActive = activeTab === group.id;
                   return (
                     <button
-                      key={item.id}
-                      onClick={() => onTabChange(item.id)}
+                      key={group.id}
+                      onClick={() => onTabChange(group.id as TabType)}
                       className={`inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium transition-colors ${
                         isActive
                           ? 'border-indigo-500 text-slate-900'
                           : 'border-transparent text-slate-500 hover:border-slate-300 hover:text-slate-700'
                       }`}
                     >
-                      <Icon className="h-4 w-4 mr-2" />
-                      {item.label}
+                      {Icon && <Icon className="h-4 w-4 mr-2" />}
+                      {group.label}
+                      {group.id === 'notificacoes' && unreadCount > 0 && (
+                        <span className="ml-2 inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                          {unreadCount}
+                        </span>
+                      )}
                     </button>
                   );
                 })}
@@ -185,91 +224,6 @@ export function Layout({ children, activeTab, onTabChange, onOpenCourse, current
             {/* Right side: User Area & Settings */}
             <div className="flex items-center space-x-4">
               
-              {/* Role Simulator */}
-              <div className="flex items-center space-x-2 mr-2 border-r border-slate-200 pr-4">
-                <label htmlFor="role-simulator" className="text-xs font-medium text-slate-500 uppercase tracking-wider">
-                  Ver como:
-                </label>
-                <select
-                  id="role-simulator"
-                  value={currentUserRole}
-                  onChange={(e) => setCurrentUserRole(e.target.value as Role)}
-                  className="text-sm border-slate-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500 py-1 pl-2 pr-8 bg-slate-50 text-slate-700 font-medium"
-                >
-                  <option value="COORDENACAO">Coordenação</option>
-                  <option value="ADMINISTRATIVO">Administrativo</option>
-                  <option value="SUPORTE">Suporte</option>
-                  <option value="TODOS">Todos</option>
-                </select>
-              </div>
-
-              {/* Notifications */}
-              <div className="relative" ref={dropdownRef}>
-                <button 
-                  onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-                  className="relative p-2 text-slate-400 hover:text-slate-500 rounded-full hover:bg-slate-100 transition-colors focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                >
-                  <Bell className="h-5 w-5" />
-                  {unreadCount > 0 && (
-                    <span className="absolute top-1 right-1 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white ring-2 ring-white">
-                      {unreadCount}
-                    </span>
-                  )}
-                </button>
-
-                {/* Dropdown */}
-                {isDropdownOpen && (
-                  <div className="absolute right-0 mt-2 w-80 bg-white rounded-xl shadow-lg border border-slate-200 overflow-hidden z-50 animate-in fade-in slide-in-from-top-2 duration-200">
-                    <div className="px-4 py-3 border-b border-slate-100 bg-slate-50/50 flex justify-between items-center">
-                      <h3 className="text-sm font-semibold text-slate-900">Notificações</h3>
-                      {unreadCount > 0 && (
-                        <span className="text-xs font-medium text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded-full">
-                          {unreadCount} novas
-                        </span>
-                      )}
-                    </div>
-                    <div className="max-h-96 overflow-y-auto">
-                      {visibleNotifications.length === 0 ? (
-                        <div className="px-4 py-6 text-center text-sm text-slate-500">
-                          Sem notificações pendentes.
-                        </div>
-                      ) : (
-                        <div className="divide-y divide-slate-100">
-                          {visibleNotifications.map(notif => (
-                            <div
-                              key={notif.id}
-                              className={`w-full text-left px-4 py-3 hover:bg-slate-50 transition-colors bg-indigo-50/30 flex items-start justify-between group cursor-pointer`}
-                              onClick={() => handleNotificationClick(notif)}
-                            >
-                              <div className="flex-1 pr-2">
-                                <div className="flex justify-between items-start mb-1">
-                                  <span className="text-xs font-bold text-indigo-600 font-mono">
-                                    {notif.courseRef}
-                                  </span>
-                                  <span className="text-[10px] text-slate-400 whitespace-nowrap ml-2">
-                                    {formatTimeAgo(notif.createdAt)}
-                                  </span>
-                                </div>
-                                <p className="text-sm text-slate-900 font-medium">
-                                  {notif.message}
-                                </p>
-                              </div>
-                              <button
-                                onClick={(e) => handleMarkAsRead(e, notif.id)}
-                                className="p-1 text-slate-400 hover:text-indigo-600 hover:bg-indigo-100 rounded transition-colors opacity-0 group-hover:opacity-100"
-                                title="Marcar como lida"
-                              >
-                                <Check className="h-4 w-4" />
-                              </button>
-                            </div>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                )}
-              </div>
-
               <div className="relative" ref={settingsRef}>
                 <button 
                   onClick={() => setIsSettingsOpen(!isSettingsOpen)}
@@ -325,8 +279,54 @@ export function Layout({ children, activeTab, onTabChange, onOpenCourse, current
                   onChange={handleFileSelect}
                 />
               </div>
-              <div className="h-8 w-8 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-700 font-medium cursor-pointer hover:bg-indigo-200 transition-colors">
-                CG
+
+              {/* Profile Dropdown */}
+              <div className="relative" ref={profileRef}>
+                <div 
+                  onClick={() => setIsProfileOpen(!isProfileOpen)}
+                  className="h-8 w-8 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-700 font-medium cursor-pointer hover:bg-indigo-200 transition-colors"
+                >
+                  CG
+                </div>
+
+                {isProfileOpen && (
+                  <div className="origin-top-right absolute right-0 mt-2 w-64 rounded-xl shadow-lg bg-white ring-1 ring-black ring-opacity-5 focus:outline-none z-50 animate-in fade-in slide-in-from-top-2 duration-200 overflow-hidden">
+                    <div className="p-4 border-b border-slate-100 bg-slate-50/50">
+                      <p className="text-sm border-slate-300 rounded-md py-1 font-semibold text-slate-900">Catarina Gomes</p>
+                      <p className="text-xs text-slate-500 truncate">catarina@linguagest.pt</p>
+                    </div>
+                    
+                    <div className="p-4 border-b border-slate-100">
+                      <label htmlFor="role-simulator" className="block text-xs font-medium text-slate-500 mb-2">
+                        O seu papel:
+                      </label>
+                      <select
+                        id="role-simulator"
+                        value={currentUserRole}
+                        onChange={(e) => setCurrentUserRole(e.target.value as Role)}
+                        className="w-full text-sm border-slate-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500 py-1.5 pl-3 pr-8 bg-white text-slate-700"
+                      >
+                        <option value="COORDENACAO">Coordenação</option>
+                        <option value="ADMINISTRATIVO">Administrativo</option>
+                        <option value="SUPORTE">Suporte</option>
+                        <option value="TODOS">Todos</option>
+                      </select>
+                    </div>
+
+                    <div className="p-1">
+                      <button
+                        onClick={() => {
+                          console.log("Logout executado");
+                          setIsProfileOpen(false);
+                        }}
+                        className="w-full text-left px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 flex items-center transition-colors rounded-lg"
+                      >
+                        <LogOut className="h-4 w-4 mr-3" />
+                        Sair
+                      </button>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
           </div>
@@ -334,7 +334,7 @@ export function Layout({ children, activeTab, onTabChange, onOpenCourse, current
       </header>
 
       {/* Main Content */}
-      <main className="flex-1 w-full max-w-full mx-auto p-6 sm:p-8">
+      <main className="flex-1 w-full max-w-full mx-auto p-4 sm:p-6">
         <ErrorBoundary>
           {children}
         </ErrorBoundary>

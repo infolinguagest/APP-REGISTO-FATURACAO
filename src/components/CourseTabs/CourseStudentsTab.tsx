@@ -59,7 +59,8 @@ export function CourseStudentsTab({
         return;
       }
 
-      const updatedCourse = await enrollStudent(currentCourse.id, selectedStudentId, 'Catarina Gomes');
+      const currentUser = 'Catarina Gomes';
+      const updatedCourse = await enrollStudent(currentCourse.id, selectedStudentId, currentUser);
       setCurrentCourse(updatedCourse);
       setShowEnrollForm(false);
       setSelectedStudentId('');
@@ -79,7 +80,8 @@ export function CourseStudentsTab({
     
     setIsUnenrolling(true);
     try {
-      const updatedCourse = await unenrollStudent(currentCourse.id, studentToRemove.id, 'Catarina Gomes');
+      const currentUser = 'Catarina Gomes';
+      const updatedCourse = await unenrollStudent(currentCourse.id, studentToRemove.id, currentUser);
       setCurrentCourse(updatedCourse);
       setStudentToRemove(null);
       onUpdate();
